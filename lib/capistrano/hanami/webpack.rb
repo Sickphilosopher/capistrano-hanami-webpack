@@ -1,9 +1,9 @@
 require "capistrano/hanami/webpack/version"
+require "capistrano/hanami/webpack/build"
 
 module Capistrano
   module Hanami
     module Webpack
-      # Your code goes here...
     end
   end
 end
