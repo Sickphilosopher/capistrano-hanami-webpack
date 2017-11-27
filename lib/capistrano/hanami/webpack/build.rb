@@ -4,7 +4,7 @@ namespace :deploy do
     on release_roles(fetch(:assets_roles)) do
       within release_path do
         with hanami_env: fetch(:hanami_env) do
-          execute :hanpack, 'build'
+          execute :hanami, 'webpack build'
         end
       end
     end
@@ -16,11 +16,11 @@ end
 namespace :load do
   task :defaults do
     # Chruby, Rbenv and RVM integration
-    append :chruby_map_bins, 'hanpack'
-    append :rbenv_map_bins, 'hanpack'
-    append :rvm_map_bins, 'hanpack'
+    append :chruby_map_bins, 'hanami'
+    append :rbenv_map_bins, 'hanami'
+    append :rvm_map_bins, 'hanami'
 
     # Bundler integration
-    append :bundle_bins, 'hanpack'
+    append :bundle_bins, 'hanami'
   end
 end
