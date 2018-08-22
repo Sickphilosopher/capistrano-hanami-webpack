@@ -1,26 +1,71 @@
 namespace :deploy do
-	desc 'Compile assets'
-  task build_webpack: [:set_hanami_env] do
-    on release_roles(fetch(:assets_roles)) do
-      within release_path do
-        with hanami_env: fetch(:hanami_env) do
-          execute :hanami, 'webpack build'
+  namespace :hanami do
+    namespace :webpack do
+      desc 'Compile assets'
+      task build: [:set_hanami_env] do
+        on release_roles(fetch(:assets_roles)) do
+          within release_path do
+            with hanami_env: fetch(:hanami_env) do
+              execute :hanami, :webpack, :build
+            end
+          end
+        end
+      end
+
+      task build_local: [:set_hanami_env] do
+        on release_roles(fetch(:assets_roles)) do
+          within release_path do
+            with hanami_env: fetch(:hanami_env) do
+              execute :hanami, :webpack, :build
+            end
+          end
+        end
+      end
+
+      desc "Actually precompile the webpack assets locally"
+      task :precompile_locally do
+        on roles(fetch(:assets_roles)) do |server|
+          run_locally do
+            with hanami_env: fetch(:precompile_env) do
+              execute :hanami, :webpack, :build, "public_path=\"#{fetch(:webpack_precompile_dir)}\""
+            end
+          end
+        end
+      end
+
+      desc "Performs rsync to app servers"
+      task :rsync do
+        on roles(fetch(:assets_roles)) do |server|
+          run_locally do
+            with hanami_env: fetch(:precompile_env) do
+              execute "#{fetch(:rsync_cmd)} ./#{fetch(:webpack_precompile_dir)}/ #{fetch(:user)}@#{server.hostname}:#{release_path}/#{fetch(:webpack_target_dir)}/"
+              execute "#{fetch(:rsync_cmd)} ./#{fetch(:webpack_manifest_dir)}/ #{fetch(:user)}@#{server.hostname}:#{release_path}/#{fetch(:webpack_manifest_target_dir)}/"
+            end
+          end
+        end
+      end
+
+      desc "Remove all local precompiled webpack assets"
+      task :cleanup do
+        run_locally do
+          execute "rm -rf", fetch(:webpack_precompile_dir)
         end
       end
     end
   end
 
-  after 'yarn:install', 'deploy:build_webpack'
+  after 'bundler:install', 'deploy:hanami:webpack:precompile_locally'
+  after "deploy:hanami:webpack:precompile_locally", "deploy:hanami:webpack:rsync"
+  after "deploy:hanami:webpack:rsync", "deploy:hanami:webpack:cleanup"
 end
 
 namespace :load do
   task :defaults do
-    # Chruby, Rbenv and RVM integration
-    append :chruby_map_bins, 'hanami'
-    append :rbenv_map_bins, 'hanami'
-    append :rvm_map_bins, 'hanami'
-
-    # Bundler integration
-    append :bundle_bins, 'hanami'
+    set :webpack_precompile_dir, 'tmp/webpack'
+    set :webpack_manifest_dir, '.webpack'
+    set :webpack_manifest_target_dir, '.webpack'
+    set :precompile_env,   fetch(:hanami_env) || 'production'
+    set :webpack_target_dir,       "public"
+    set :rsync_cmd,        "rsync -av --delete"
   end
 end
