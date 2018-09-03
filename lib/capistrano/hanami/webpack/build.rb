@@ -48,7 +48,7 @@ namespace :deploy do
       desc "Remove all local precompiled webpack assets"
       task :cleanup do
         run_locally do
-          execute "rm -rf", fetch(:webpack_precompile_dir)
+          execute "rm -rf ./#{fetch(:webpack_precompile_dir)}"
         end
       end
     end
@@ -66,6 +66,6 @@ namespace :load do
     set :webpack_manifest_target_dir, '.webpack'
     set :precompile_env,   fetch(:hanami_env) || 'production'
     set :webpack_target_dir,       "public"
-    set :rsync_cmd,        "rsync -av --delete"
+    set :rsync_cmd,        "rsync -azq"
   end
 end
