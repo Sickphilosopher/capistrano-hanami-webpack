@@ -39,6 +39,10 @@ namespace :deploy do
       desc "Performs rsync to app servers"
       task :rsync do
         on roles(fetch(:assets_roles)) do |server|
+          on release_roles(fetch(:assets_roles)) do
+            execute "mkdir -p #{release_path}/#{fetch(:webpack_target_dir)}/"
+            execute "mkdir -p #{release_path}/#{fetch(:webpack_manifest_target_dir)}/"
+          end
           run_locally do
             with hanami_env: fetch(:precompile_env) do
               execute "#{fetch(:rsync_cmd)} #{fetch(:webpack_precompile_dir)}/ #{fetch(:user)}@#{server.hostname}:#{release_path}/#{fetch(:webpack_target_dir)}/"
