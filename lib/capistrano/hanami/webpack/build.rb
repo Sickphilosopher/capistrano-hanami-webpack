@@ -40,7 +40,6 @@ namespace :deploy do
       task :rsync do
         on roles(fetch(:assets_roles)) do |server|
           on release_roles(fetch(:assets_roles)) do
-            execute "mkdir -p #{release_path}/#{fetch(:webpack_target_dir)}/"
             execute "mkdir -p #{release_path}/#{fetch(:webpack_manifest_target_dir)}/"
           end
           run_locally do
@@ -74,6 +73,6 @@ namespace :load do
     set :webpack_manifest_target_dir, '.webpack'
     set :precompile_env,   fetch(:hanami_env) || 'production'
     set :webpack_target_dir,       "public"
-    set :rsync_cmd,        "rsync -azq"
+    set :rsync_cmd,        "rsync -azq --no-perms"
   end
 end
