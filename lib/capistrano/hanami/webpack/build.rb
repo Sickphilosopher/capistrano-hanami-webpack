@@ -26,12 +26,10 @@ namespace :deploy do
 
       desc "Actually precompile the webpack assets locally"
       task :precompile_locally do
-        on roles(fetch(:assets_roles)) do |server|
-          run_locally do
-            with hanami_env: fetch(:precompile_env) do
-              wp_config = "\"public_path=#{fetch(:webpack_precompile_dir)} stage=#{fetch(:stage) || fetch(:hanami_env)} manifest.dir=#{fetch(:webpack_manifest_dir)}\""
-              execute :hanami, :webpack, :build, wp_config
-            end
+        run_locally do
+          with hanami_env: fetch(:precompile_env) do
+            wp_config = "\"public_path=#{fetch(:webpack_precompile_dir)} stage=#{fetch(:stage) || fetch(:hanami_env)} manifest.dir=#{fetch(:webpack_manifest_dir)}\""
+            execute :hanami, :webpack, :build, wp_config
           end
         end
       end
